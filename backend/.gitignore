@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+*.log
+*.pot
+*.pyc
+*.pyo
+*.db
+*.sqlite3
+media/
+staticfiles/
+
+# Virtualenv
+.env
+.venv
+venv/
+ENV/
+env/
+
+# VSCode
+.vscode/
+
+# macOS
+.DS_Store
+
+# Pytest
+.cache/
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+
+# Migrations (optional, keep if you want to ignore generated migrations)
+# */migrations/
+
+# Poetry
+poetry.lock
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+
+# Pyre type checker
+.pyre/
