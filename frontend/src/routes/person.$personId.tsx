@@ -111,13 +111,13 @@ function PersonDetailPage() {
               </p>
             </div>
             <div className="flex space-x-2">
-              <Link to={`/tree/${person.id}`}>
+              <Link to="/tree/$personId" params={{ personId: person.id }}>
                 <Button variant="outline">
                   <TreePine className="w-4 h-4 mr-2" />
                   View Tree
                 </Button>
               </Link>
-              <Link to={`/edit/${person.id}`}>
+              <Link to="/edit/$personId" params={{ personId: person.id }}>
                 <Button>
                   <Edit className="w-4 h-4 mr-2" />
                   Edit
@@ -221,7 +221,8 @@ function PersonDetailPage() {
                           )}
                           <div className="flex-1">
                             <Link
-                              to={`/person/${spouse.id}`}
+                              to="/person/$personId"
+                              params={{ personId: spouse.id }}
                               className="font-medium hover:underline"
                             >
                               {spouse.full_name}
@@ -266,7 +267,8 @@ function PersonDetailPage() {
                           )}
                           <div className="flex-1">
                             <Link
-                              to={`/person/${child.id}`}
+                              to="/person/$personId"
+                              params={{ personId: child.id }}
                               className="font-medium hover:underline"
                             >
                               {child.full_name}
@@ -315,7 +317,8 @@ function PersonDetailPage() {
                         )}
                         <div className="flex-1">
                           <Link
-                            to={`/person/${parent.id}`}
+                            to="/person/$personId"
+                            params={{ personId: parent.id }}
                             className="font-medium hover:underline"
                           >
                             {parent.full_name}
@@ -337,13 +340,13 @@ function PersonDetailPage() {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Link to={`/tree/${person.id}`} className="w-full">
+                <Link to="/tree/$personId" params={{ personId: person.id }} className="w-full">
                   <Button variant="outline" className="w-full justify-start">
                     <TreePine className="w-4 h-4 mr-2" />
                     View Family Tree
                   </Button>
                 </Link>
-                <Link to={`/edit/${person.id}`} className="w-full">
+                <Link to="/edit/$personId" params={{ personId: person.id }} className="w-full">
                   <Button variant="outline" className="w-full justify-start">
                     <Edit className="w-4 h-4 mr-2" />
                     Edit Person

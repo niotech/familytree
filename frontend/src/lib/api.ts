@@ -23,7 +23,7 @@ export interface PersonDetail extends Person {
 export interface Spouse extends Person {
   marriage_date?: string;
   divorce_date?: string;
-  is_active_marriage: boolean;
+  active_marriage_status: boolean;
   children: Person[];
 }
 
@@ -41,9 +41,16 @@ export interface FamilyRelationship {
   person2_name: string;
   marriage_date?: string;
   divorce_date?: string;
-  is_active_marriage: boolean;
+  active_marriage_status: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
 }
 
 class ApiService {
@@ -65,13 +72,13 @@ class ApiService {
   }
 
   // Person endpoints
-  async getPersons(params?: { name?: string; gender?: string }): Promise<Person[]> {
+  async getPersons(params?: { name?: string; gender?: string }): Promise<PaginatedResponse<Person>> {
     const searchParams = new URLSearchParams();
     if (params?.name) searchParams.append('name', params.name);
     if (params?.gender) searchParams.append('gender', params.gender);
 
     const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-    return this.request<Person[]>(`/persons/${query}`);
+    return this.request<PaginatedResponse<Person>>(`/persons/${query}`);
   }
 
   async getPerson(id: string): Promise<Person> {
@@ -79,7 +86,7 @@ class ApiService {
   }
 
   async getPersonDetail(id: string): Promise<PersonDetail> {
-    return this.request<PersonDetail>(`/persons/${id}/detail/`);
+    return this.request<PersonDetail>(`/persons/${id}/`);
   }
 
   async getPersonFamilyTree(id: string): Promise<FamilyTreePerson> {

@@ -31,7 +31,7 @@ function HomePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link to="/tree/adda9918-824b-4123-b10b-5b23eb432f4f">
+            <Link to="/tree/$personId" params={{ personId: "adda9918-824b-4123-b10b-5b23eb432f4f" }}>
               <Button className="w-full">
                 <TreePine className="w-4 h-4 mr-2" />
                 View Tree

@@ -22,7 +22,7 @@ class PersonViewSet(viewsets.ModelViewSet):
         """Return appropriate serializer class based on action."""
         if self.action == 'list':
             return PersonListSerializer
-        elif self.action in ['retrieve', 'detail']:
+        elif self.action == 'retrieve':
             return PersonDetailSerializer
         elif self.action == 'family_tree':
             return FamilyTreeSerializer
@@ -44,9 +44,7 @@ class PersonViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    @action(detail=True, methods=['get'])
-    def detail(self, request, pk=None):
-        """Get detailed person information with family relationships."""
+    def retrieve(self, request, *args, **kwargs):
         person = self.get_object()
         serializer = self.get_serializer(person)
         return Response(serializer.data)

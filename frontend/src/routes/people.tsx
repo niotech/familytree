@@ -16,7 +16,7 @@ function PeoplePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [genderFilter, setGenderFilter] = useState('')
+  const [genderFilter, setGenderFilter] = useState('all')
 
   useEffect(() => {
     loadPeople()
@@ -27,7 +27,7 @@ function PeoplePage() {
       setLoading(true)
       setError(null)
       const data = await api.getPersons()
-      setPeople(data)
+      setPeople(data.results)
     } catch (err) {
       setError('Failed to load people')
       console.error('Error loading people:', err)
@@ -38,7 +38,7 @@ function PeoplePage() {
 
   const filteredPeople = people.filter(person => {
     const matchesSearch = person.full_name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesGender = !genderFilter || person.gender === genderFilter
+    const matchesGender = genderFilter === 'all' || person.gender === genderFilter
     return matchesSearch && matchesGender
   })
 
@@ -118,7 +118,7 @@ function PeoplePage() {
                   <SelectValue placeholder="All genders" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All genders</SelectItem>
+                  <SelectItem value="all">All genders</SelectItem>
                   <SelectItem value="M">Male</SelectItem>
                   <SelectItem value="F">Female</SelectItem>
                   <SelectItem value="O">Other</SelectItem>
@@ -213,13 +213,13 @@ function PeoplePage() {
                 </div>
 
                 <div className="flex space-x-2">
-                  <Link to={`/person/${person.id}`} className="flex-1">
+                  <Link to="/person/$personId" params={{ personId: person.id }} className="flex-1">
                     <Button variant="outline" className="w-full">
                       <Eye className="w-4 h-4 mr-2" />
                       View
                     </Button>
                   </Link>
-                  <Link to={`/edit/${person.id}`} className="flex-1">
+                  <Link to="/edit/$personId" params={{ personId: person.id }} className="flex-1">
                     <Button variant="outline" className="w-full">
                       <Edit className="w-4 h-4 mr-2" />
                       Edit

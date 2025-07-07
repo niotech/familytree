@@ -2,9 +2,12 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { api, type Person, type FamilyTreePerson } from '@/lib/api'
 import { Loader2, User, Users } from 'lucide-react'
+
+// Import family-chart CSS
+import 'family-chart/styles/family-chart.css'
 
 export const Route = createFileRoute('/tree/$personId')({
   component: FamilyTreePage,
@@ -39,108 +42,140 @@ function FamilyTreePage() {
 
   useEffect(() => {
     if (person && chartRef.current) {
-      // Initialize family-chart
-      const { FamilyChart } = require('family-chart')
+      // Initialize family-chart using dynamic import
+      import('family-chart').then((familyChart) => {
+        console.log('Family chart module:', familyChart);
+        console.log('Available exports:', Object.keys(familyChart));
 
-      // Convert our data structure to family-chart format
-      const chartData = convertToChartData(person)
+        // Convert our data structure to family-chart format
+        const chartData = convertToChartData(person)
+        console.log('Chart data:', chartData);
 
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy()
-      }
-
-      chartInstanceRef.current = new FamilyChart(chartRef.current, {
-        data: chartData,
-        nodeBinding: {
-          field_0: "name",
-          field_1: "birth",
-          img_0: "img"
-        },
-        nodeMenu: {
-          details: { text: "Details" },
-          edit: { text: "Edit" },
-          add: { text: "Add" }
-        },
-        nodeContextMenu: {
-          details: { text: "Details" },
-          edit: { text: "Edit" },
-          add: { text: "Add" }
-        },
-        nodeMenuBinding: {
-          field_0: "name",
-          field_1: "birth",
-          img_0: "img"
-        },
-        onNodeClick: (node: any) => {
-          // Find the person data from our API response
-          const personData = findPersonById(node.id, person!)
-          if (personData) {
-            setSelectedPerson(personData)
+        // Clean up existing chart instance
+        if (chartInstanceRef.current) {
+          try {
+            if (typeof chartInstanceRef.current.destroy === 'function') {
+              chartInstanceRef.current.destroy()
+            } else if (typeof chartInstanceRef.current.dispose === 'function') {
+              chartInstanceRef.current.dispose()
+            } else if (typeof chartInstanceRef.current.remove === 'function') {
+              chartInstanceRef.current.remove()
+            }
+          } catch (err) {
+            console.warn('Error cleaning up chart instance:', err)
           }
+          chartInstanceRef.current = null
         }
+
+        // Try using the default export (f3)
+        const f3 = familyChart.default || familyChart;
+        if (chartRef.current && f3 && f3.createChart) {
+          try {
+            chartInstanceRef.current = f3.createChart(chartRef.current, {
+              data: chartData,
+              nodeBinding: {
+                field_0: "name",
+                field_1: "birth",
+                img_0: "img"
+              },
+              nodeMenu: {
+                details: { text: "Details" },
+                edit: { text: "Edit" },
+                add: { text: "Add" }
+              },
+              nodeContextMenu: {
+                details: { text: "Details" },
+                edit: { text: "Edit" },
+                add: { text: "Add" }
+              },
+              nodeMenuBinding: {
+                field_0: "name",
+                field_1: "birth",
+                img_0: "img"
+              },
+              onNodeClick: (node: any) => {
+                // Find the person data from our API response
+                const personData = findPersonById(node.id, person!)
+                if (personData) {
+                  setSelectedPerson(personData)
+                }
+              }
+            })
+          } catch (err) {
+            console.error('Error creating chart:', err)
+            setError('Failed to create family tree visualization')
+          }
+        } else {
+          console.error('f3 or createChart not found in familyChart module');
+          setError('Family tree visualization library not available')
+        }
+      }).catch((err) => {
+        console.error('Failed to load family-chart:', err)
+        setError('Failed to load family tree visualization')
       })
     }
 
     return () => {
+      // Cleanup function
       if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy()
+        try {
+          if (typeof chartInstanceRef.current.destroy === 'function') {
+            chartInstanceRef.current.destroy()
+          } else if (typeof chartInstanceRef.current.dispose === 'function') {
+            chartInstanceRef.current.dispose()
+          } else if (typeof chartInstanceRef.current.remove === 'function') {
+            chartInstanceRef.current.remove()
+          }
+        } catch (err) {
+          console.warn('Error during chart cleanup:', err)
+        }
+        chartInstanceRef.current = null
       }
     }
   }, [person])
 
   const convertToChartData = (rootPerson: FamilyTreePerson) => {
-    const nodes: any[] = []
-    const edges: any[] = []
+    const nodes: any[] = [];
+    const marriageMap = new Map<string, number>(); // Map spouseId to marriageId
+    let marriageIdCounter = 1000;
 
     // Add root person
     nodes.push({
       id: rootPerson.id,
       name: rootPerson.full_name,
-      birth: rootPerson.date_of_birth ? new Date(rootPerson.date_of_birth).getFullYear().toString() : '',
+      gender: rootPerson.gender,
       img: rootPerson.profile_photo || '',
-      gender: rootPerson.gender
-    })
+      birth: rootPerson.date_of_birth ? new Date(rootPerson.date_of_birth).getFullYear().toString() : '',
+    });
 
-    // Add spouses and their children
+    // Add spouses and assign marriage IDs
     rootPerson.spouses.forEach(spouse => {
+      const marriageId = marriageIdCounter++;
+      marriageMap.set(spouse.id, marriageId);
+
       nodes.push({
         id: spouse.id,
         name: spouse.full_name,
-        birth: spouse.date_of_birth ? new Date(spouse.date_of_birth).getFullYear().toString() : '',
+        gender: spouse.gender,
         img: spouse.profile_photo || '',
-        gender: spouse.gender
-      })
-
-      // Connect root person to spouse
-      edges.push({
-        from: rootPerson.id,
-        to: spouse.id,
-        type: 'spouse'
-      })
+        birth: spouse.date_of_birth ? new Date(spouse.date_of_birth).getFullYear().toString() : '',
+        mid: marriageId,
+      });
 
       // Add children from this spouse
       spouse.children.forEach(child => {
-        nodes.push({
-          id: child.id,
-          name: child.full_name,
-          birth: child.date_of_birth ? new Date(child.date_of_birth).getFullYear().toString() : '',
-          img: child.profile_photo || '',
-          gender: child.gender
-        })
-
-        // Connect both parents to child
-        edges.push({
-          from: rootPerson.id,
-          to: child.id,
-          type: 'parent'
-        })
-        edges.push({
-          from: spouse.id,
-          to: child.id,
-          type: 'parent'
-        })
-      })
-    })
+        if (!nodes.find(n => n.id === child.id)) {
+          nodes.push({
+            id: child.id,
+            name: child.full_name,
+            gender: child.gender,
+            img: child.profile_photo || '',
+            birth: child.date_of_birth ? new Date(child.date_of_birth).getFullYear().toString() : '',
+            pids: [rootPerson.id, spouse.id],
+          });
+        }
+      });
+    });
 
     // Add other children (not from spouses)
     rootPerson.children.forEach(child => {
@@ -148,20 +183,15 @@ function FamilyTreePage() {
         nodes.push({
           id: child.id,
           name: child.full_name,
-          birth: child.date_of_birth ? new Date(child.date_of_birth).getFullYear().toString() : '',
+          gender: child.gender,
           img: child.profile_photo || '',
-          gender: child.gender
-        })
-
-        edges.push({
-          from: rootPerson.id,
-          to: child.id,
-          type: 'parent'
-        })
+          birth: child.date_of_birth ? new Date(child.date_of_birth).getFullYear().toString() : '',
+          pids: [rootPerson.id],
+        });
       }
-    })
+    });
 
-    return { nodes, edges }
+    return nodes;
   }
 
   const findPersonById = (id: string, rootPerson: FamilyTreePerson): Person | null => {

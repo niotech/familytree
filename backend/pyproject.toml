@@ -1,20 +1,25 @@
-[project]
-name = "backend"
+[tool.poetry]
+name = "familytree-backend"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "Benny Christanto",email = "niotech5@gmail.com"}
-]
+description = "Django backend for Family Tree web application"
+authors = ["Benny Christanto <niotech5@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "django (>=5.2.4,<6.0.0)",
-    "djangorestframework (>=3.15.0,<4.0.0)",
-    "django-cors-headers (>=4.3.0,<5.0.0)",
-    "Pillow (>=10.0.0,<11.0.0)"
-]
+packages = []
+package-mode = false
 
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.2.4"
+djangorestframework = "^3.15.0"
+django-cors-headers = "^4.3.0"
+Pillow = "^10.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"
+pytest-django = "^4.7.0"
+black = "^23.0.0"
+flake8 = "^6.0.0"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

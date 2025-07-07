@@ -158,7 +158,8 @@ function EditPersonPage() {
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
           <Link
-            to={`/person/${personId}`}
+            to="/person/$personId"
+            params={{ personId }}
             className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -265,8 +266,8 @@ function EditPersonPage() {
               </div>
 
               <div className="flex justify-end space-x-4">
-                <Link to={`/person/${personId}`}>
-                  <Button type="button" variant="outline">
+                <Link to="/person/$personId" params={{ personId }}>
+                  <Button variant="outline">
                     Cancel
                   </Button>
                 </Link>

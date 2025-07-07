@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import logging
+import traceback
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +27,7 @@ SECRET_KEY = 'django-insecure-fu%ft+dh!wlczy$@iznbwzi+x9!%v%_fk8lvk5*nobb^c==+8m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 
 # Application definition
@@ -143,6 +145,7 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser',
         'rest_framework.parsers.FormParser',
     ],
+    # 'EXCEPTION_HANDLER': 'familytree.settings.custom_exception_handler',
 }
 
 # CORS settings for frontend integration
@@ -173,3 +176,54 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+def custom_exception_handler(exc, context):
+    """Custom exception handler to return JSON responses instead of HTML debug pages."""
+    from rest_framework.views import exception_handler
+    from rest_framework.response import Response
+    from rest_framework import status
+
+    # Call the default exception handler first
+    response = exception_handler(exc, context)
+
+    if response is not None:
+        # If DRF handled it, return the response as is
+        return response
+
+    # If DRF didn't handle it, create a JSON response
+    logging.error("Unhandled Exception: %s", exc)
+    logging.error("Traceback:\n%s", traceback.format_exc())
+
+    return Response({
+        'error': str(exc),
+        'detail': 'An unexpected error occurred.',
+        'type': type(exc).__name__
+    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class IgnoreOptionsFilter(logging.Filter):
+    def filter(self, record):
+        return 'OPTIONS /api/settings/all/' not in record.getMessage()
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'ignore_options': {
+            '()': IgnoreOptionsFilter,
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['ignore_options'],
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

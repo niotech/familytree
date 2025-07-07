@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,7 +22,7 @@ function SearchPage() {
     try {
       setLoading(true)
       const data = await api.getPersons({ name: searchTerm })
-      setResults(data)
+      setResults(data.results)
       setHasSearched(true)
     } catch (error) {
       console.error('Search error:', error)
@@ -164,13 +164,13 @@ function SearchPage() {
                       </div>
 
                       <div className="flex space-x-2">
-                        <Link to={`/person/${person.id}`} className="flex-1">
+                        <Link to="/person/$personId" params={{ personId: person.id }} className="flex-1">
                           <Button variant="outline" className="w-full">
                             <Eye className="w-4 h-4 mr-2" />
                             View
                           </Button>
                         </Link>
-                        <Link to={`/edit/${person.id}`} className="flex-1">
+                        <Link to="/edit/$personId" params={{ personId: person.id }} className="flex-1">
                           <Button variant="outline" className="w-full">
                             <Edit className="w-4 h-4 mr-2" />
                             Edit

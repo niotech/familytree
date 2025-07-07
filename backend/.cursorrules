@@ -1,0 +1,94 @@
+# Django Backend - Cursor Rules
+
+## Project Context
+This is a Django backend for a Family Tree web application with Django REST Framework API.
+
+## Tech Stack
+- Django 5.x
+- Django REST Framework
+- SQLite (development) / PostgreSQL (production)
+- Pillow for image processing
+- django-cors-headers
+
+## Coding Standards
+
+### Python/Django
+- Follow PEP 8 style guide
+- Use type hints where appropriate
+- Use Django's built-in features and conventions
+- Prefer class-based views for complex logic
+- Use Django ORM for database operations
+- Implement proper error handling and validation
+
+### Models
+- Use UUID primary keys for Person and FamilyRelationship models
+- Add proper Meta classes with ordering
+- Include created_at and updated_at timestamps
+- Use choices for enumerated fields (gender, relationship types)
+- Add helpful docstrings and property methods
+
+### Serializers
+- Create separate serializers for different use cases (list, detail, create)
+- Use SerializerMethodField for complex relationships
+- Include proper validation
+- Handle nested relationships appropriately
+
+### Views
+- Use ViewSets for CRUD operations
+- Implement custom actions for specific endpoints
+- Add proper filtering and search capabilities
+- Use appropriate HTTP status codes
+- Handle file uploads properly
+
+### API Design
+- Follow RESTful conventions
+- Use consistent URL patterns
+- Implement proper pagination
+- Add comprehensive error responses
+- Use appropriate HTTP methods
+
+### Security
+- Validate all input data
+- Use Django's built-in security features
+- Implement proper CORS settings
+- Handle file uploads securely
+- Use environment variables for sensitive data
+
+### Testing
+- Write unit tests for models and views
+- Use Django's test framework
+- Test API endpoints thoroughly
+- Mock external dependencies
+
+## File Structure
+```
+backend/
+├── familytree/          # Django project settings
+├── family/              # Main app
+│   ├── models.py        # Person, FamilyRelationship
+│   ├── serializers.py   # API serializers
+│   ├── views.py         # API views
+│   ├── admin.py         # Admin interface
+│   └── management/      # Custom commands
+├── manage.py
+└── requirements.txt
+```
+
+## Common Patterns
+- Use UUID for primary keys
+- Implement soft deletes where appropriate
+- Add proper indexes for performance
+- Use select_related and prefetch_related for queries
+- Implement caching for frequently accessed data
+
+## Database
+- Use migrations for schema changes
+- Add proper indexes
+- Consider database constraints
+- Use transactions for complex operations
+
+## Performance
+- Optimize database queries
+- Use caching where appropriate
+- Implement pagination for large datasets
+- Consider async operations for I/O bound tasks

@@ -94,8 +94,8 @@ class FamilyRelationship(models.Model):
             return f"{self.person1.full_name} -> {self.person2.full_name} (Parent-Child)"
 
     @property
-    def is_active_marriage(self):
+    def active_marriage_status(self):
         """Check if this is an active marriage (no divorce date)."""
         if self.relationship_type != 'spouse':
             return False
-        return not self.divorce_date
+        return self.divorce_date is None

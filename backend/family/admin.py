@@ -28,10 +28,10 @@ class PersonAdmin(admin.ModelAdmin):
 
 @admin.register(FamilyRelationship)
 class FamilyRelationshipAdmin(admin.ModelAdmin):
-    list_display = ['relationship_type', 'person1', 'person2', 'marriage_date', 'divorce_date', 'is_active_marriage']
+    list_display = ['relationship_type', 'person1', 'person2', 'marriage_date', 'divorce_date']
     list_filter = ['relationship_type', 'marriage_date', 'divorce_date']
     search_fields = ['person1__full_name', 'person2__full_name']
-    readonly_fields = ['id', 'created_at', 'updated_at', 'is_active_marriage']
+    readonly_fields = ['id', 'created_at', 'updated_at']
 
     fieldsets = (
         ('Relationship Information', {
@@ -42,7 +42,7 @@ class FamilyRelationshipAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
         ('System Information', {
-            'fields': ('id', 'created_at', 'updated_at', 'is_active_marriage'),
+            'fields': ('id', 'created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )

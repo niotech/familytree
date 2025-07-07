@@ -14,7 +14,8 @@ export default function Header() {
 
             <div className="hidden md:flex items-center space-x-6">
               <Link
-                to="/tree/adda9918-824b-4123-b10b-5b23eb432f4f"
+                to="/tree/$personId"
+                params={{ personId: "adda9918-824b-4123-b10b-5b23eb432f4f" }}
                 className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <TreePine className="w-4 h-4" />
