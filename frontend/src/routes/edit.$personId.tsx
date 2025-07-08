@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { api, type Person } from '@/lib/api'
 import { Loader2, User, ArrowLeft, Save } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/edit/$personId')({
   component: EditPersonPage,
@@ -98,7 +97,7 @@ function EditPersonPage() {
       await api.updatePerson(personId, data)
 
       // Navigate to the person's detail page
-      navigate({ to: `/person/${personId}` })
+      navigate({ to: '/person/$personId', params: { personId } })
     } catch (error) {
       console.error('Error updating person:', error)
       alert('Failed to update person. Please try again.')
@@ -157,14 +156,14 @@ function EditPersonPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <Link
-            to="/person/$personId"
-            params={{ personId }}
+          <Button
+            onClick={() => navigate({ to: '/person/$personId', params: { personId } })}
+            variant="ghost"
             className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Person Details
-          </Link>
+            Back to Person
+          </Button>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Edit Person: {person.full_name}
           </h1>
@@ -266,11 +265,12 @@ function EditPersonPage() {
               </div>
 
               <div className="flex justify-end space-x-4">
-                <Link to="/person/$personId" params={{ personId }}>
-                  <Button variant="outline">
-                    Cancel
-                  </Button>
-                </Link>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate({ to: '/person/$personId', params: { personId } })}
+                >
+                  Cancel
+                </Button>
                 <Button type="submit" disabled={saving}>
                   {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   <Save className="w-4 h-4 mr-2" />

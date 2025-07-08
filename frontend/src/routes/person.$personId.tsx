@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ export const Route = createFileRoute('/person/$personId')({
 })
 
 function PersonDetailPage() {
+  const navigate = useNavigate()
   const { personId } = Route.useParams()
   const [person, setPerson] = useState<PersonDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -111,18 +112,19 @@ function PersonDetailPage() {
               </p>
             </div>
             <div className="flex space-x-2">
-              <Link to="/tree/$personId" params={{ personId: person.id }}>
-                <Button variant="outline">
-                  <TreePine className="w-4 h-4 mr-2" />
-                  View Tree
-                </Button>
-              </Link>
-              <Link to="/edit/$personId" params={{ personId: person.id }}>
-                <Button>
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
-              </Link>
+              <Button
+                variant="outline"
+                onClick={() => navigate({ to: '/tree/$personId', params: { personId: person.id } })}
+              >
+                <TreePine className="w-4 h-4 mr-2" />
+                View Tree
+              </Button>
+              <Button
+                onClick={() => navigate({ to: '/edit/$personId', params: { personId: person.id } })}
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit
+              </Button>
             </div>
           </div>
         </div>
@@ -220,13 +222,12 @@ function PersonDetailPage() {
                             </div>
                           )}
                           <div className="flex-1">
-                            <Link
-                              to="/person/$personId"
-                              params={{ personId: spouse.id }}
-                              className="font-medium hover:underline"
+                            <button
+                              onClick={() => navigate({ to: '/person/$personId', params: { personId: spouse.id } })}
+                              className="font-medium hover:underline text-left bg-transparent border-none cursor-pointer"
                             >
                               {spouse.full_name}
-                            </Link>
+                            </button>
                             <p className="text-sm text-gray-600">
                               {spouse.marriage_date && `Married: ${new Date(spouse.marriage_date).toLocaleDateString()}`}
                               {spouse.divorce_date && ` (Divorced: ${new Date(spouse.divorce_date).toLocaleDateString()})`}
@@ -266,13 +267,12 @@ function PersonDetailPage() {
                             </div>
                           )}
                           <div className="flex-1">
-                            <Link
-                              to="/person/$personId"
-                              params={{ personId: child.id }}
-                              className="font-medium hover:underline"
+                            <button
+                              onClick={() => navigate({ to: '/person/$personId', params: { personId: child.id } })}
+                              className="font-medium hover:underline text-left bg-transparent border-none cursor-pointer"
                             >
                               {child.full_name}
-                            </Link>
+                            </button>
                             <p className="text-sm text-gray-600">
                               {getGenderLabel(child.gender)}
                               {child.age !== undefined && ` • ${child.age} years old`}
@@ -316,13 +316,12 @@ function PersonDetailPage() {
                           </div>
                         )}
                         <div className="flex-1">
-                          <Link
-                            to="/person/$personId"
-                            params={{ personId: parent.id }}
-                            className="font-medium hover:underline"
+                          <button
+                            onClick={() => navigate({ to: '/person/$personId', params: { personId: parent.id } })}
+                            className="font-medium hover:underline text-left bg-transparent border-none cursor-pointer"
                           >
                             {parent.full_name}
-                          </Link>
+                          </button>
                           <p className="text-sm text-gray-600">
                             {getGenderLabel(parent.gender)}
                           </p>
@@ -340,18 +339,22 @@ function PersonDetailPage() {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Link to="/tree/$personId" params={{ personId: person.id }} className="w-full">
-                  <Button variant="outline" className="w-full justify-start">
-                    <TreePine className="w-4 h-4 mr-2" />
-                    View Family Tree
-                  </Button>
-                </Link>
-                <Link to="/edit/$personId" params={{ personId: person.id }} className="w-full">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit Person
-                  </Button>
-                </Link>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => navigate({ to: '/tree/$personId', params: { personId: person.id } })}
+                >
+                  <TreePine className="w-4 h-4 mr-2" />
+                  View Family Tree
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => navigate({ to: '/edit/$personId', params: { personId: person.id } })}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Person
+                </Button>
                 <Link to="/add" className="w-full">
                   <Button variant="outline" className="w-full justify-start">
                     <User className="w-4 h-4 mr-2" />

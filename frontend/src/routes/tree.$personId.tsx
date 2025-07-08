@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { api, type Person, type FamilyTreePerson } from '@/lib/api'
 import { Loader2, User, Users } from 'lucide-react'
+import f3 from 'family-chart'
 
 // Import family-chart CSS
 import 'family-chart/styles/family-chart.css'
@@ -42,81 +43,14 @@ function FamilyTreePage() {
 
   useEffect(() => {
     if (person && chartRef.current) {
-      // Initialize family-chart using dynamic import
-      import('family-chart').then((familyChart) => {
-        console.log('Family chart module:', familyChart);
-        console.log('Available exports:', Object.keys(familyChart));
+      console.log('Family chart module:', f3);
+      console.log('Available exports:', Object.keys(f3));
 
-        // Convert our data structure to family-chart format
-        const chartData = convertToChartData(person)
-        console.log('Chart data:', chartData);
+      // Convert our data structure to family-chart format
+      const chartData = convertToChartData(person)
+      console.log('Chart data:', chartData);
 
-        // Clean up existing chart instance
-        if (chartInstanceRef.current) {
-          try {
-            if (typeof chartInstanceRef.current.destroy === 'function') {
-              chartInstanceRef.current.destroy()
-            } else if (typeof chartInstanceRef.current.dispose === 'function') {
-              chartInstanceRef.current.dispose()
-            } else if (typeof chartInstanceRef.current.remove === 'function') {
-              chartInstanceRef.current.remove()
-            }
-          } catch (err) {
-            console.warn('Error cleaning up chart instance:', err)
-          }
-          chartInstanceRef.current = null
-        }
-
-        // Try using the default export (f3)
-        const f3 = familyChart.default || familyChart;
-        if (chartRef.current && f3 && f3.createChart) {
-          try {
-            chartInstanceRef.current = f3.createChart(chartRef.current, {
-              data: chartData,
-              nodeBinding: {
-                field_0: "name",
-                field_1: "birth",
-                img_0: "img"
-              },
-              nodeMenu: {
-                details: { text: "Details" },
-                edit: { text: "Edit" },
-                add: { text: "Add" }
-              },
-              nodeContextMenu: {
-                details: { text: "Details" },
-                edit: { text: "Edit" },
-                add: { text: "Add" }
-              },
-              nodeMenuBinding: {
-                field_0: "name",
-                field_1: "birth",
-                img_0: "img"
-              },
-              onNodeClick: (node: any) => {
-                // Find the person data from our API response
-                const personData = findPersonById(node.id, person!)
-                if (personData) {
-                  setSelectedPerson(personData)
-                }
-              }
-            })
-          } catch (err) {
-            console.error('Error creating chart:', err)
-            setError('Failed to create family tree visualization')
-          }
-        } else {
-          console.error('f3 or createChart not found in familyChart module');
-          setError('Family tree visualization library not available')
-        }
-      }).catch((err) => {
-        console.error('Failed to load family-chart:', err)
-        setError('Failed to load family tree visualization')
-      })
-    }
-
-    return () => {
-      // Cleanup function
+      // Clean up existing chart instance
       if (chartInstanceRef.current) {
         try {
           if (typeof chartInstanceRef.current.destroy === 'function') {
@@ -125,6 +59,63 @@ function FamilyTreePage() {
             chartInstanceRef.current.dispose()
           } else if (typeof chartInstanceRef.current.remove === 'function') {
             chartInstanceRef.current.remove()
+          }
+        } catch (err) {
+          console.warn('Error cleaning up chart instance:', err)
+        }
+        chartInstanceRef.current = null
+      }
+
+      // Use the exact same approach as the example
+      if (chartRef.current && f3) {
+        try {
+          const store = (f3 as any).createStore({
+            data: chartData,
+            node_separation: 250,
+            level_separation: 150
+          })
+
+          const svg = (f3 as any).createSvg(document.querySelector("#FamilyChart"))
+
+          const Card = (f3 as any).elements.Card({
+            store,
+            svg,
+            card_dim: {w:220,h:70,text_x:75,text_y:15,img_w:60,img_h:60,img_x:5,img_y:5},
+            card_display: [
+              (i: any) => `${i.data["first name"] || ""} ${i.data["last name"] || ""}`,
+              (i: any) => `${i.data.birthday || ""}`
+            ],
+            mini_tree: true,
+            link_break: false
+          })
+
+          store.setOnUpdate((props: any) => (f3 as any).view(store.getTree(), svg, Card, props || {}))
+          store.updateTree({initial: true})
+
+          // Store reference for cleanup
+          chartInstanceRef.current = { store, svg, Card }
+
+        } catch (err) {
+          console.error('Error creating chart:', err)
+          setError('Failed to create family tree visualization')
+        }
+      } else {
+        console.error('f3 not found in familyChart module');
+        setError('Family tree visualization library not available')
+      }
+    }
+
+    return () => {
+      // Cleanup function
+      if (chartInstanceRef.current) {
+        try {
+          if (chartInstanceRef.current.store) {
+            // Clean up store if needed
+            chartInstanceRef.current.store = null
+          }
+          if (chartInstanceRef.current.svg) {
+            // Clean up SVG if needed
+            chartInstanceRef.current.svg = null
           }
         } catch (err) {
           console.warn('Error during chart cleanup:', err)
@@ -136,79 +127,62 @@ function FamilyTreePage() {
 
   const convertToChartData = (rootPerson: FamilyTreePerson) => {
     const nodes: any[] = [];
-    const marriageMap = new Map<string, number>(); // Map spouseId to marriageId
-    let marriageIdCounter = 1000;
+    const processedIds = new Set<string>();
 
-    // Add root person
-    nodes.push({
-      id: rootPerson.id,
-      name: rootPerson.full_name,
-      gender: rootPerson.gender,
-      img: rootPerson.profile_photo || '',
-      birth: rootPerson.date_of_birth ? new Date(rootPerson.date_of_birth).getFullYear().toString() : '',
-    });
-
-    // Add spouses and assign marriage IDs
-    rootPerson.spouses.forEach(spouse => {
-      const marriageId = marriageIdCounter++;
-      marriageMap.set(spouse.id, marriageId);
+    // Helper function to add a person to the nodes array
+    const addPerson = (person: any, rels: any) => {
+      if (processedIds.has(person.id)) return;
+      processedIds.add(person.id);
 
       nodes.push({
-        id: spouse.id,
-        name: spouse.full_name,
-        gender: spouse.gender,
-        img: spouse.profile_photo || '',
-        birth: spouse.date_of_birth ? new Date(spouse.date_of_birth).getFullYear().toString() : '',
-        mid: marriageId,
+        id: person.id,
+        data: {
+          "first name": person.full_name.split(' ')[0] || '',
+          "last name": person.full_name.split(' ').slice(1).join(' ') || '',
+          "birthday": person.date_of_birth ? new Date(person.date_of_birth).getFullYear().toString() : '',
+          "avatar": person.profile_photo || '',
+          "gender": person.gender
+        },
+        rels: rels
       });
+    };
+
+    // Add root person
+    const rootRels: any = {
+      spouses: rootPerson.spouses.map(s => s.id),
+      children: rootPerson.children.map(c => c.id)
+    };
+    addPerson(rootPerson, rootRels);
+
+    // Add spouses
+    rootPerson.spouses.forEach(spouse => {
+      const spouseRels: any = {
+        spouses: [rootPerson.id],
+        children: spouse.children.map(c => c.id)
+      };
+      addPerson(spouse, spouseRels);
 
       // Add children from this spouse
       spouse.children.forEach(child => {
-        if (!nodes.find(n => n.id === child.id)) {
-          nodes.push({
-            id: child.id,
-            name: child.full_name,
-            gender: child.gender,
-            img: child.profile_photo || '',
-            birth: child.date_of_birth ? new Date(child.date_of_birth).getFullYear().toString() : '',
-            pids: [rootPerson.id, spouse.id],
-          });
-        }
+        const childRels: any = {
+          father: rootPerson.id,
+          mother: spouse.id
+        };
+        addPerson(child, childRels);
       });
     });
 
     // Add other children (not from spouses)
     rootPerson.children.forEach(child => {
-      if (!nodes.find(n => n.id === child.id)) {
-        nodes.push({
-          id: child.id,
-          name: child.full_name,
-          gender: child.gender,
-          img: child.profile_photo || '',
-          birth: child.date_of_birth ? new Date(child.date_of_birth).getFullYear().toString() : '',
-          pids: [rootPerson.id],
-        });
+      if (!processedIds.has(child.id)) {
+        const childRels: any = {
+          father: rootPerson.id
+        };
+        addPerson(child, childRels);
       }
     });
 
     return nodes;
-  }
-
-  const findPersonById = (id: string, rootPerson: FamilyTreePerson): Person | null => {
-    if (rootPerson.id === id) return rootPerson
-
-    for (const spouse of rootPerson.spouses) {
-      if (spouse.id === id) return spouse
-      for (const child of spouse.children) {
-        if (child.id === id) return child
-      }
-    }
-
-    for (const child of rootPerson.children) {
-      if (child.id === id) return child
-    }
-
-    return null
   }
 
   if (loading) {
@@ -278,7 +252,8 @@ function FamilyTreePage() {
         <CardContent>
           <div
             ref={chartRef}
-            className="w-full h-[600px] border rounded-lg"
+            id="FamilyChart"
+            className="f3 w-full h-[600px] border rounded-lg"
             style={{ minHeight: '600px' }}
           />
         </CardContent>

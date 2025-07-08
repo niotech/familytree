@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,7 @@ export const Route = createFileRoute('/people')({
 })
 
 function PeoplePage() {
+  const navigate = useNavigate()
   const [people, setPeople] = useState<Person[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -213,18 +214,22 @@ function PeoplePage() {
                 </div>
 
                 <div className="flex space-x-2">
-                  <Link to="/person/$personId" params={{ personId: person.id }} className="flex-1">
-                    <Button variant="outline" className="w-full">
-                      <Eye className="w-4 h-4 mr-2" />
-                      View
-                    </Button>
-                  </Link>
-                  <Link to="/edit/$personId" params={{ personId: person.id }} className="flex-1">
-                    <Button variant="outline" className="w-full">
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => navigate({ to: '/person/$personId', params: { personId: person.id } })}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => navigate({ to: '/edit/$personId', params: { personId: person.id } })}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit
+                  </Button>
                 </div>
               </CardContent>
             </Card>
